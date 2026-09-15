@@ -26,6 +26,20 @@ header .eyebrow:before{content:'MVHS TRACK & FIELD  •  ';color:#f26522}
 @media(max-width:900px){.app-shell{grid-template-columns:76px 1fr}.sidebar{padding:24px 12px}.brand>div,.nav-link:not(.active),.sidebar-bottom{display:none}.brand{padding:0 6px 35px}.nav-link.active{justify-content:center}.page-grid,.coach-grid{grid-template-columns:1fr}.right-column,.roster{padding-top:0}.right-column{display:grid;grid-template-columns:1fr 1fr;gap:14px}.panel{margin:0}}
 @media(max-width:650px){.app-shell{display:block}.sidebar{display:none}main{padding:0 16px 40px}header{height:auto;padding:17px 0;margin-bottom:22px}header>div:nth-child(2){display:none}.mobile-brand{display:flex;border:0;background:transparent;font:700 16px Oswald;align-items:center;gap:7px}.profile{margin-left:auto}.profile div:last-child{display:none}.hero-card{padding:25px 22px;min-height:155px}.hero-copy h2{font-size:27px}.progress-ring{width:78px;height:78px}.progress-ring:before{width:62px;height:62px}.exercise-card{grid-template-columns:32px 1fr 88px;padding:14px}.exercise-number{display:none}.metric{display:none}.metric.target{display:grid;border:0;padding:0;text-align:right}.right-column{display:block}.panel{margin-bottom:12px}.coach-actions{align-items:center}.coach-actions h2{font-size:23px}.primary-button{padding:10px}.builder-row{grid-template-columns:22px 1fr 42px 42px;padding:14px 12px;gap:8px}.date-row{align-items:start;gap:10px}.date-row select{max-width:145px}.coach-note{margin-bottom:24px}}
 
+/* MVHS palette: kept last so it overrides every original prototype color. */
+:root{--lime:#f26522;--ink:#0c0d0b;--line:#ded7d1;--muted:#726b66}
+body,.login-page{background:#f6f2ee}
+.sidebar,.hero-card,.progress-ring:before{background:#0c0d0b}
+.nav-link.active{background:#2a211c;border-left:3px solid #f26522}
+.role-switch .selected,.avatar,.primary-button,.done .check-button{background:#f26522;border-color:#f26522;color:#0c0d0b}
+.brand div span,.hero-copy p,.panel p,.dark-panel p,.login-art span{color:#f26522}
+.progress-ring{background:conic-gradient(#f26522 var(--progress),#3b302a 0)}
+.date-dot{background:#f26522;box-shadow:0 0 0 4px #f7c9b3}
+.metric.target strong{color:#c6420a}
+.coach-note{border-left-color:#f26522}
+.dark-panel{background:#211a17;border-top:3px solid #f26522}
+.google-button{background:#0c0d0b;border-bottom:3px solid #f26522}
+
     </style>
     <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
