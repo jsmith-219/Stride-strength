@@ -1,0 +1,16 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null && request.auth.token.email_verified == true; }
+    function coach() { return signedIn() && request.auth.token.email == 'jsmith@mvcsd.us'; }
+    function athlete() { return signedIn() && request.auth.token.email.matches('.*@stu\\.mvcsd\\.us$'); }
+    match /workouts/{id} { allow read: if coach() || athlete(); allow write: if coach(); }
+    match /athletes/{uid} {
+      allow read: if coach() || (athlete() && request.auth.uid == uid);
+      allow create: if athlete() && request.auth.uid == uid && request.resource.data.email == request.auth.token.email;
+      allow update: if coach() || (athlete() && request.auth.uid == uid && request.resource.data.email == resource.data.email && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['maxes','event','name','initials']));
+      allow delete: if coach();
+    }
+    match /progress/{uid} { allow read, write: if coach() || (athlete() && request.auth.uid == uid); }
+  }
+}

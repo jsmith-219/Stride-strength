@@ -1,6 +1,6 @@
 # Stride Strength
 
-A mobile-friendly strength workout dashboard for track coaches and athletes. The current version runs immediately in demo mode and stores changes in the browser.
+A mobile-friendly strength workout dashboard for track coaches and athletes, connected to Firebase Authentication and Cloud Firestore.
 
 ## Run locally
 
@@ -16,28 +16,20 @@ Open `http://localhost:5173`. No installation or downloads are required. Use the
 
 ## What works now
 
-- Coach and athlete dashboard views
+- Google sign-in restricted to the authorized coach and MVCS student domain
+- Coach and athlete dashboard views determined by the signed-in account
 - Editable daily workout in coach mode
 - Athlete max-lift editing
 - Automatic percentage-to-weight calculations, rounded to 5 lb
 - Per-athlete workout completion tracking
-- Browser persistence with `localStorage`
+- Cloud persistence through Firestore
 - Responsive phone and desktop layouts
 
-## Next step: Firebase
+## Firebase setup
 
-Create a Firebase project, enable Email/Password Authentication, and create a Firestore database. Then add a `.env.local` file containing the public Firebase web-app configuration:
+Enable Google Authentication and Cloud Firestore. In Firebase Console, open **Firestore Database → Rules**, replace the editor contents with `firestore.rules`, and publish. The authorized domain must include `jsmith-219.github.io`.
 
-```env
-VITE_FIREBASE_API_KEY=
-VITE_FIREBASE_AUTH_DOMAIN=
-VITE_FIREBASE_PROJECT_ID=
-VITE_FIREBASE_STORAGE_BUCKET=
-VITE_FIREBASE_MESSAGING_SENDER_ID=
-VITE_FIREBASE_APP_ID=
-```
-
-The production data model should use `users`, `athletes`, `workouts`, and `workoutAssignments` collections. Athlete documents should be accessible only to the athlete and authorized coaches through Firestore Security Rules. Do not put service-account credentials in this project or commit `.env.local` to GitHub.
+Never put service-account credentials or private Admin SDK keys in this project.
 
 ## Publish to GitHub
 
