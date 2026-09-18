@@ -89,7 +89,7 @@ import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signO
 import { getFirestore, doc, setDoc, updateDoc, deleteDoc, getDoc, onSnapshot, collection, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 
 const firebaseConfig={apiKey:'AIzaSyDKvkPll6GuhR2rXItJ7HuVF7tQ4TmpdGo',authDomain:'stride-strength.firebaseapp.com',projectId:'stride-strength',storageBucket:'stride-strength.firebasestorage.app',messagingSenderId:'928601164915',appId:'1:928601164915:web:eb64de026c96e6f7c96e06'};
-const COACH_EMAIL='jsmith@mvcsd.us',ATHLETE_DOMAIN='@stu.mvcsd.us',TEST_ATHLETE_EMAIL='jcsmith2210@gmail.com';
+const COACH_EMAILS=['jsmith@mvcsd.us','cmcmurry@mvcsd.us'],ATHLETE_DOMAIN='@stu.mvcsd.us',TEST_ATHLETE_EMAIL='jcsmith2210@gmail.com';
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),provider=new GoogleAuthProvider();
 provider.setCustomParameters({prompt:'select_account'});
 const dateKey=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -147,7 +147,7 @@ async function connectData(){
     watchSchedule();
   }
 }
-onAuthStateChanged(auth,async user=>{state.loading=false;state.error='';state.archived=false;if(!user){state.user=null;state.role=null;clearAll();render();return}const email=(user.email||'').toLowerCase();if(email===COACH_EMAIL)state.role='coach';else if(email.endsWith(ATHLETE_DOMAIN)||email===TEST_ATHLETE_EMAIL)state.role='athlete';else{await signOut(auth);state.error=`${email} is not an authorized school account.`;render();return}state.user=user;render();connectData()});
+onAuthStateChanged(auth,async user=>{state.loading=false;state.error='';state.archived=false;if(!user){state.user=null;state.role=null;clearAll();render();return}const email=(user.email||'').toLowerCase();if(COACH_EMAILS.includes(email))state.role='coach';else if(email.endsWith(ATHLETE_DOMAIN)||email===TEST_ATHLETE_EMAIL)state.role='athlete';else{await signOut(auth);state.error=`${email} is not an authorized school account.`;render();return}state.user=user;render();connectData()});
 document.addEventListener('click',async e=>{
   const el=e.target.closest('[data-action]');
   if(!el||el.matches('input,select,textarea'))return;
