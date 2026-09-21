@@ -178,8 +178,6 @@ async function connectData(){
     if(state.role==='coach')state.dataUnsubs.push(onSnapshot(collection(db,'practiceStaff'),snap=>{state.practiceStaff=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.name||a.email||'').localeCompare(b.name||b.email||''));render()}));
   }
   if(state.role==='coach'){
-    const dated=doc(db,'workouts',today),datedSnap=await getDoc(dated);
-    if(!datedSnap.exists()){const old=await getDoc(doc(db,'workouts','current'));if(old.exists())await setDoc(dated,{...old.data(),date:today})}
     state.dataUnsubs.push(onSnapshot(collection(db,'athletes'),snap=>{state.athletes=snap.docs.map(d=>({id:d.id,...d.data()}));if(!state.athletes.some(a=>a.id===state.selectedId))state.selectedId=state.athletes.find(a=>a.active!==false)?.id||state.athletes[0]?.id;render()}));
     state.dataUnsubs.push(onSnapshot(collection(db,'templates'),snap=>{state.templates=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.title||'').localeCompare(b.title||''));render()}));
     state.dataUnsubs.push(onSnapshot(collection(db,'progress'),snap=>{state.allProgress=Object.fromEntries(snap.docs.map(d=>[d.id,d.data()]));render()}));
