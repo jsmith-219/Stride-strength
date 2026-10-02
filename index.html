@@ -171,6 +171,8 @@ html,body{margin:0!important;padding:0!important;background:#fff!important}
 .barcode-print-options{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:0 0 14px}.barcode-print-option{border:1px solid var(--line);border-radius:10px;background:#fff;padding:12px;text-align:left;cursor:pointer;color:var(--ink)}.barcode-print-option strong,.barcode-print-option small{display:block}.barcode-print-option strong{font-size:11px}.barcode-print-option small{color:var(--muted);font-size:9px;margin-top:4px;line-height:1.4}.barcode-print-option.active{border-color:var(--orange);box-shadow:inset 0 0 0 2px var(--orange);background:#fff8f3}.barcode-print-option.active strong{color:#bd4712}
 @media(max-width:650px){.barcode-print-options{grid-template-columns:1fr}.practice-card-tools{align-items:flex-start;gap:10px}.practice-card-tools .primary-button{white-space:nowrap}}
 @media print{
+html,body{display:block!important;min-height:0!important;height:auto!important}
+.practice-cards-print{position:absolute!important;left:0!important;top:0!important;margin:0!important}
 .practice-cards-print.print-layout-compact{display:grid!important;grid-template-columns:repeat(2,3.875in);grid-template-rows:none;grid-auto-rows:2.35in;column-gap:.1875in;row-gap:.2in;width:7.9375in}
 .practice-cards-print.print-layout-large{display:grid!important;grid-template-columns:repeat(2,3.875in);grid-template-rows:none;grid-auto-rows:4.8in;column-gap:.1875in;row-gap:.4in;width:7.9375in}
 .practice-cards-print.print-layout-compact .practice-id-card,.practice-cards-print.print-layout-large .practice-id-card{width:100%;height:100%;min-height:0;padding:.18in;border:1px solid #777;border-radius:.08in;display:flex;overflow:hidden}
