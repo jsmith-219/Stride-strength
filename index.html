@@ -181,7 +181,7 @@ html,body{margin:0!important;padding:0!important;background:#fff!important}
 .practice-cards-print.print-layout-circle{position:static!important;left:auto!important;top:auto!important;width:8.5in!important;margin:0!important;display:block!important}
 .circle-label-sheet{box-sizing:border-box;width:8.5in;height:11in;aspect-ratio:auto;margin:0;padding:0;border:0;display:grid;grid-template-columns:repeat(5,1.5in);grid-template-rows:repeat(6,1.5in);column-gap:.13in;row-gap:.11in;place-content:center;break-after:page;page-break-after:always}
 .circle-label-sheet:last-child{break-after:auto;page-break-after:auto}
-.circle-barcode-label{width:1.5in;height:1.5in;min-height:0;aspect-ratio:auto;padding:0;border:0;border-radius:50%;background:transparent;break-inside:avoid;page-break-inside:avoid}
+.circle-barcode-label{box-sizing:border-box;width:1.5in;height:1.5in;min-height:0;aspect-ratio:auto;padding:0;border:0;border-radius:50%;background:transparent;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);break-inside:avoid;page-break-inside:avoid}
 .circle-label-content{width:1.28in;height:1.22in;transform:translateY(.09in);grid-template-rows:.25in .38in .15in .25in;row-gap:.035in}
 .circle-label-heading{font:900 8.8pt/1 Arial,sans-serif}.circle-label-heading span{margin-top:1pt}
 .circle-label-bars svg{width:1.26in;height:.34in}
