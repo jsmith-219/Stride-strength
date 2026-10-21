@@ -916,15 +916,17 @@ document.addEventListener('submit',async event=>{const form=event.target.closest
 
 Object.assign(state,{meetTransportationStatus:null,meetTransportationSplitChoice:null});
 const meetTransportationThrowEvent=event=>/shot put|weight throw|discus/i.test(String(event||''));
-function meetTransportationSplitEvents(m,entries){const configured=meetEventCatalog(m).map(item=>item.event),used=[...new Set(entries.flatMap(([,record])=>meetEventValues(record)))];return used.sort((a,b)=>{const ai=configured.indexOf(a),bi=configured.indexOf(b);return(ai<0?999:ai)-(bi<0?999:bi)||a.localeCompare(b)})}
-function meetAutomaticBus(athlete,record,busCount,splitAfter='',eventOrder=[]){
+function meetTransportationFieldEvent(event,meet){return meetEventCatalog(meet).some(item=>item.event===event&&['field','field-team'].includes(item.type))||/long jump|triple jump|high jump|pole vault|shot put|weight throw|discus|javelin/i.test(String(event||''))}
+function meetTransportationRunRank(event){const value=String(event||'').toLowerCase().replace(/\bvarsity\b/g,'').replace(/\s+/g,' ').trim(),relay=value.match(/4\s*x\s*(100|200|400|800|1600)/);if(relay)return({'800':0,'1600':0,'200':5,'100':7,'400':13})[relay[1]];const hurdles=value.match(/\b(60|100|110|300)\s*m?\s*hurdles?\b/);if(hurdles)return({'60':1,'100':2,'110':2,'300':9})[hurdles[1]];const distance=value.match(/\b(60|100|200|400|800|1600|3200)\s*m?\s*(?:dash|run)?\b/);if(distance)return({'60':3,'100':4,'1600':6,'400':8,'800':10,'200':11,'3200':12})[distance[1]];if(/\b1\s*mile\b/.test(value))return 6;return 1000}
+function meetTransportationSplitEvents(m,entries){const catalog=meetEventCatalog(m),configured=catalog.map(item=>item.event),used=[...new Set(entries.flatMap(([,record])=>meetEventValues(record)))],customSchedule=meetIsRelayMeet(m)&&Array.isArray(m?.customEventSchedule);return used.sort((a,b)=>{const fieldOrder=Number(!meetTransportationFieldEvent(a,m))-Number(!meetTransportationFieldEvent(b,m));if(fieldOrder)return fieldOrder;const ai=customSchedule?configured.indexOf(a):meetTransportationRunRank(a),bi=customSchedule?configured.indexOf(b):meetTransportationRunRank(b);return(ai<0?999:ai)-(bi<0?999:bi)||a.localeCompare(b)})}
+function meetAutomaticBus(athlete,record,busCount,splitAfter='',eventOrder=[],meet=null){
   if(busCount===1)return'Bus 1';
   const team=String(athlete?.team||'').trim().toLowerCase();
   if(busCount===3){
     const groups=meetAthleteGroups(athlete),fieldAthlete=groups.includes('thrower')||meetEventValues(record).some(meetTransportationThrowEvent);
     if(fieldAthlete)return'Bus 3';
   }
-  if(busCount===4){const splitIndex=eventOrder.indexOf(splitAfter),entered=meetEventValues(record),hasBusOneEvent=entered.some(event=>{const index=eventOrder.indexOf(event);return index>=0&&index<=splitIndex});return hasBusOneEvent?'Bus 1':'Bus 2'}
+  if(busCount===4){const splitIndex=eventOrder.indexOf(splitAfter),entered=meetEventValues(record),hasFieldEvent=entered.some(event=>meetTransportationFieldEvent(event,meet)),hasBusOneEvent=entered.some(event=>{const index=eventOrder.indexOf(event);return index>=0&&index<=splitIndex});return hasFieldEvent||hasBusOneEvent?'Bus 1':'Bus 2'}
   if(team==='girls'||team==='girl'||team==='female')return'Bus 1';
   if(team==='boys'||team==='boy'||team==='male')return'Bus 2';
   return'';
@@ -948,7 +950,7 @@ document.addEventListener('click',async event=>{
   if(busCount===4&&splitIndex<0){state.meetTransportationStatus={meetId:m.id,text:'Choose an event that is on this meet roster.'};render();return}
   const previousRoster=m.roster||{},previousBuses=m.buses||'',previousPlan=m.busPlan||null,roster={...previousRoster};
   let needsReview=0;
-  entries.forEach(([athlete,record])=>{const bus=meetAutomaticBus(athlete,record,busCount,splitAfter,splitEvents);if(!bus)needsReview++;roster[athlete.id]={...record,bus}});
+  entries.forEach(([athlete,record])=>{const bus=meetAutomaticBus(athlete,record,busCount,splitAfter,splitEvents,m);if(!bus)needsReview++;roster[athlete.id]={...record,bus}});
   const buses=busCount===3?'Bus 1, Bus 2, Bus 3':busCount===2||busCount===4?'Bus 1, Bus 2':'Bus 1',updated={...m,roster,buses,busPlan:busCount,...(busCount===4?{busSplitAfter:splitAfter}:{})};
   state.meets=state.meets.map(item=>item.id===m.id?updated:item);
   state.meetTransportationStatus={meetId:m.id,text:`Sorting ${entries.length} meet athlete${entries.length===1?'':'s'}…`};
