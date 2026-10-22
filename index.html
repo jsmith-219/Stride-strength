@@ -826,7 +826,7 @@ document.addEventListener('click',async e=>{const button=e.target.closest('[data
 Object.assign(state,{performanceTab:'overview',performanceSeason:'all',performanceTeam:'all',performanceGrade:'all',performanceAthleteId:null,performanceEvent:'',archivedMeets:[]});
 Object.assign(state,{meetResultsTeamFilter:'all',meetResultsEventFilter:'all',meetResultsView:'open',meetRelayResultsTeamFilter:'all'});
 const performanceFieldEvent=event=>/jump|vault|shot put|weight throw|discus/i.test(String(event||''));
-const performanceRecordEligible=result=>!result?.handTime||performanceFieldEvent(result.event);
+const performanceRecordEligible=result=>{const mark=String(result?.mark||'').trim();if(/^(dns|dnf|dq|nd|nm|nh|scr|scratch)(?:\b|[\s(:-])/i.test(mark))return false;return !result?.handTime||performanceFieldEvent(result.event)};
 function performanceMarkValue(mark){const value=String(mark||'').trim().toLowerCase();if(!value||/^(dns|dnf|dq|nd|nm|nh|scr|scratch|—|-)$/.test(value))return NaN;const feet=value.match(/^(\d+(?:\.\d+)?)\s*['’′-]\s*(\d+(?:\.\d+)?)\s*(?:["”″]|in)?$/);if(feet)return Number(feet[1])*12+Number(feet[2]);const clock=value.match(/^(\d{1,2}):\s*(\d{1,2}(?:\.\d+)?)$/);if(clock)return Number(clock[1])*60+Number(clock[2]);const numeric=value.match(/-?\d+(?:\.\d+)?/);return numeric?Number(numeric[0]):NaN}
 const performanceBetter=(event,a,b)=>performanceFieldEvent(event)?a>b:a<b;
 function performanceBest(results){let best=null;results.forEach(result=>{if(!performanceRecordEligible(result))return;const value=performanceMarkValue(result.mark);if(!Number.isFinite(value))return;if(!best||performanceBetter(result.event,value,best.value))best={result,value}});return best}
