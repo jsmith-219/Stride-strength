@@ -289,6 +289,7 @@ const dateKey=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-$
 const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
 const mondayOf=d=>{const x=new Date(d),day=x.getDay();x.setHours(12,0,0,0);x.setDate(x.getDate()-(day===0?6:day-1));return x};
 const today=dateKey(new Date()),defaultWorkout={title:'Lower Body Power',focus:'Strength + explosiveness',note:'Move with intent. Full recovery between power sets.',tipTitle:'Own the movement.',tipText:'Weights are rounded to the nearest 5 lb. Technique always comes before load.',exercises:[{id:1,name:'Back Squat',lift:'squat',sets:4,reps:5,percent:75},{id:2,name:'Romanian Deadlift',lift:'deadlift',sets:3,reps:6,percent:60},{id:3,name:'Box Jump',lift:null,sets:4,reps:3,percent:null},{id:4,name:'Walking Lunge',lift:null,sets:3,reps:'8 / leg',percent:null}]};
+const workoutLibraryCategoryChoices=[['sprinters','Sprinters / Jumpers'],['distance','Distance'],['throwers','Throwers']];
 let state={user:null,role:null,archived:false,coachPage:'dashboard',preview:false,mobileMenu:false,athletes:[],templates:[],workouts:{},workoutGroupData:{},selectedWorkoutGroup:'general',libraryCreateGroup:'sprinters',libraryTemplateDraft:null,editingWorkoutGroups:[],editingWorkoutOriginalGroups:[],completed:{},attendance:{},allProgress:{},selectedId:null,selectedDate:today,attendanceDetailDate:today,weekStart:mondayOf(new Date()),editing:false,loading:true,error:'',dataUnsubs:[],scheduleUnsubs:[],practiceAthletes:[],practiceAttendance:{},practiceStaff:[],practiceTab:'today',practiceDate:today,practiceSearch:'',practiceTeam:'all',barcodeSelectedAthletes:null,barcodeStartPosition:1,barcodeAthletePickerOpen:false,practiceScanResult:null,availabilityTimer:null,athletePracticeData:{},athletePracticeRoster:null,showAthleteBarcode:false,jerseyAssignments:{},jerseySelectedId:null,jerseyCameraOpen:false,physicalRecords:{},physicalSettings:{seasonStart:'',seasonEnd:''},physicalFilter:'all',athletePhysicalRecord:null,athletePhysicalUnsub:null,seasonSettings:null,seasonArchives:[],seasonRolloverOpen:false,seasonBusy:false,seasonHistoryDetail:null};
 const archivedSeasonTypeBackfill=new Set;
 const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
@@ -1359,7 +1360,6 @@ document.addEventListener('click',async event=>{
 const meetResultsReleaseStyle=document.createElement('style');
 meetResultsReleaseStyle.textContent='.meet-access-release{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0 0 15px;padding:13px 17px;border:1px solid #f1cbb9;border-radius:11px;background:#fff7f2}.meet-access-release.released{border-color:#b9d7c0;background:#f0f8f1}.meet-access-release>div{display:grid;gap:3px}.meet-access-release strong{font-size:12px;letter-spacing:.03em}.meet-access-release span{font-size:10px;color:var(--muted)}.meet-access-release .primary-button{white-space:nowrap}@media(max-width:650px){.meet-access-release{align-items:stretch;flex-direction:column}.meet-access-release .primary-button{width:100%}}';document.head.appendChild(meetResultsReleaseStyle);
 
-render();
 
 function performanceAthleteRelayTeamRows(){
   const rows=[];
@@ -1769,7 +1769,6 @@ document.addEventListener('click',async event=>{
   }
 },true);
 
-const workoutLibraryCategoryChoices=[['sprinters','Sprinters / Jumpers'],['distance','Distance'],['throwers','Throwers']];
 function workoutLibraryCategory(template){const group=cleanWorkoutGroup(template?.workoutGroup);return group==='general'?'sprinters':group}
 try{const storedWorkoutGroup=localStorage.getItem('mvhs-selected-workout-group');if(storedWorkoutGroup&&workoutGroupLabels[storedWorkoutGroup])state.selectedWorkoutGroup=storedWorkoutGroup}catch{}
 function workoutLibraryView(){
