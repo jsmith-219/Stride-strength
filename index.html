@@ -294,6 +294,9 @@ let state={user:null,role:null,archived:false,coachPage:'dashboard',preview:fals
 /* Handle workout-group controls before the older page-wide action listeners. */
 window.addEventListener('click',async event=>{
  const el=event.target.closest?.('[data-action]');if(!el)return;const action=el.dataset.action;
+ if(action==='coach-weightroom'){
+  event.preventDefault();event.stopImmediatePropagation();state.coachPage='workout';state.preview=false;state.mobileMenu=false;render();return
+ }
  if(action==='select-workout-group'){
   event.preventDefault();event.stopImmediatePropagation();const next=cleanWorkoutGroup(el.dataset.group);if(next===cleanWorkoutGroup(state.selectedWorkoutGroup))return;
   const key=state.selectedDate,oldGroup=cleanWorkoutGroup(state.selectedWorkoutGroup),workout=state.workouts[key];let pendingSave=null;
