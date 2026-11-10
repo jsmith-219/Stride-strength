@@ -294,6 +294,9 @@ let state={user:null,role:null,archived:false,coachPage:'dashboard',preview:fals
 /* Handle workout-group controls before the older page-wide action listeners. */
 window.addEventListener('click',async event=>{
  const el=event.target.closest?.('[data-action]');if(!el)return;const action=el.dataset.action;
+ if(action==='coach-weightroom'){
+  event.preventDefault();event.stopImmediatePropagation();state.coachPage='workout';state.preview=false;state.mobileMenu=false;render();return
+ }
  if(action==='select-workout-group'){
   event.preventDefault();event.stopImmediatePropagation();const next=cleanWorkoutGroup(el.dataset.group);if(next===cleanWorkoutGroup(state.selectedWorkoutGroup))return;
   const key=state.selectedDate,oldGroup=cleanWorkoutGroup(state.selectedWorkoutGroup),workout=state.workouts[key];let pendingSave=null;
@@ -1859,9 +1862,6 @@ window.addEventListener('change',async event=>{const action=event.target.dataset
 const workoutExerciseModeStyle=document.createElement('style');workoutExerciseModeStyle.textContent='.builder-row.no-percent{grid-template-columns:30px minmax(140px,1fr) 60px 60px}.exercise-editor.no-percent:not(.uses-set-plan){grid-template-columns:34px minmax(210px,1.4fr) minmax(170px,1fr) 70px 80px}.set-plan-edit-head.no-percent,.set-plan-edit-row.no-percent{grid-template-columns:42px minmax(90px,1fr) 30px}.athlete-set-plan.no-percent .set-plan-head,.athlete-set-plan.no-percent>div{grid-template-columns:42px minmax(0,1fr)}@media(max-width:1150px){.exercise-editor.no-percent:not(.uses-set-plan){grid-template-columns:28px 1.5fr 1fr 60px 70px}}@media(max-width:650px){.builder-row.no-percent{grid-template-columns:22px minmax(100px,1fr) 38px 42px}.exercise-editor.no-percent:not(.uses-set-plan){grid-template-columns:24px 1fr 1fr}.set-plan-edit-head.no-percent,.set-plan-edit-row.no-percent{grid-template-columns:28px 1fr 26px;gap:5px}.athlete-set-plan.no-percent .set-plan-head,.athlete-set-plan.no-percent>div{grid-template-columns:28px minmax(0,1fr);gap:4px}}';document.head.appendChild(workoutExerciseModeStyle);
 
 
-function bindDirectWeightRoomNavigation(){document.querySelectorAll('[data-action="coach-weightroom"]').forEach(button=>{button.onclick=event=>{event.preventDefault();event.stopPropagation();state.coachPage='workout';state.preview=false;state.mobileMenu=false;try{render()}catch(error){console.error('Could not open the Weight Room page',error);alert(`The Weight Room page could not open: ${error.message}`)}}})}
-const renderBeforeDirectWeightRoomNavigation=render;
-render=function(){renderBeforeDirectWeightRoomNavigation();bindDirectWeightRoomNavigation()};
 render();
 </script>
   </body>
