@@ -284,7 +284,7 @@ import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signO
 import { getFirestore, doc, setDoc, updateDoc, deleteDoc, deleteField, getDoc, getDocs, onSnapshot, collection, query, where, serverTimestamp, writeBatch } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 
 const firebaseConfig={apiKey:'AIzaSyDKvkPll6GuhR2rXItJ7HuVF7tQ4TmpdGo',authDomain:'stride-strength.firebaseapp.com',projectId:'stride-strength',storageBucket:'stride-strength.firebasestorage.app',messagingSenderId:'928601164915',appId:'1:928601164915:web:eb64de026c96e6f7c96e06'};
-const COACH_EMAILS=['jsmith@mvcsd.us','cmcmurry@mvcsd.us','kthayer@mvcsd.us'],ATHLETE_DOMAIN='@stu.mvcsd.us',TEST_ATHLETE_EMAIL='jcsmith2210@gmail.com';
+const COACH_EMAILS=['jsmith@mvcsd.us','cmcmurry@mvcsd.us','kthayer@mvcsd.us','llamp@mvcsd.us'],ATHLETE_DOMAIN='@stu.mvcsd.us',TEST_ATHLETE_EMAIL='jcsmith2210@gmail.com';
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),provider=new GoogleAuthProvider();
 provider.setCustomParameters({prompt:'select_account'});
 const dateKey=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
