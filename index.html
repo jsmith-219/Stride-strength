@@ -6,7 +6,15 @@
     <meta name="theme-color" content="#151713" />
     <meta name="description" content="MVHS Track & Field daily strength training plans." />
     <title>MVHS Track and Field</title>
-  </head>
+  <style>
+/* Keep Practice History dates visible within the scrolling attendance roster. */
+.practice-week-scroll{max-height:min(70vh,720px);overflow:auto}
+.practice-week-head{position:sticky;top:0;z-index:3;background:#171713}
+.practice-week-head>div:first-child{z-index:4;background:#171713}
+@media(max-width:650px){.practice-week-scroll{max-height:65vh}}
+@media print{.practice-week-scroll{max-height:none;overflow:visible}.practice-week-head{position:static}}
+</style>
+</head>
   <body>
     <div id="root"></div>
     <style>
