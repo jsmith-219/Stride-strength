@@ -25,6 +25,8 @@
 .assistant-sidebar-nav .nav-link{width:100%;text-align:left;display:flex;align-items:center;gap:10px}.assistant-sidebar-nav .nav-link.active{background:#fff1e9;color:#c14b11}.assistant-mobile-nav{grid-template-columns:repeat(4,minmax(0,1fr))!important}.assistant-mobile-nav button span{font-size:10px}.assistant-mobile-nav button.active{background:#f26522;color:#14140f}
 
 .meet-time-trial-badge{display:inline-flex;border-radius:999px;background:#edf1fb!important;color:#304c85!important;font-size:10px;font-weight:900;padding:7px 10px}.meet-form .meet-home-checkbox small,.meet-settings .meet-home-checkbox small{font-size:10px;line-height:1.4;color:var(--muted);font-weight:500}.meet-form .meet-time-trial-choice{flex-wrap:wrap}.meet-form label:has(input[name="handTime"]){flex-wrap:wrap}.meet-form .meet-home-checkbox small{flex-basis:100%;margin-left:25px}.meet-form .meet-home-checkbox input{flex:none}
+
+.hytek-export-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}.hytek-export-heading p,.hytek-guidance{font-size:12px;color:var(--muted);line-height:1.6;margin:7px 0 12px}.hytek-settings{display:grid;grid-template-columns:.7fr 1.4fr .7fr 1.3fr;gap:10px;margin-top:15px}.hytek-settings label{display:grid;gap:6px;font-size:10px;font-weight:900;color:var(--muted)}.hytek-settings input,.hytek-settings select{min-width:0;width:100%;padding:10px;background:#fff;border:1px solid var(--line);border-radius:7px;color:var(--ink);font-size:13px}.hytek-counts{font-size:12px;font-weight:800}.hytek-errors{padding:12px 15px;background:#fff0ed;border:1px solid #e4b4ac;border-radius:9px;color:#913429;font-size:12px;line-height:1.6;margin:14px 0}.hytek-errors ul{margin:7px 0 0;padding-left:18px}.hytek-review-scroll{overflow:auto;max-height:450px;border:1px solid var(--line);border-radius:9px}.hytek-review{width:100%;border-collapse:collapse;min-width:520px;font-size:12px}.hytek-review th{text-align:left;background:#222;color:#fff;padding:10px;position:sticky;top:0}.hytek-review td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}.hytek-review td small{display:block;color:var(--muted);font-size:10px;line-height:1.5;margin-top:4px}.hytek-export-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:15px}.hytek-export-actions button:disabled{opacity:.45;cursor:not-allowed}@media(max-width:700px){.hytek-export-heading{flex-direction:column}.hytek-settings{grid-template-columns:1fr 1fr}.hytek-export-actions>button{width:100%}}@media(max-width:400px){.hytek-settings{grid-template-columns:1fr}}
 </style>
 </head>
   <body>
@@ -2566,6 +2568,93 @@ function updateTimeTrialForm(form){
 const renderBeforeTimeTrialForm=render;
 render=function(){renderBeforeTimeTrialForm();if(state.role==='coach'&&state.coachPage==='meets')document.querySelectorAll('form[data-form="create-meet"],form[data-form="meet-details"]').forEach(updateTimeTrialForm)};
 document.addEventListener('change',event=>{if(['timeTrial','homeMeet','scoreVarsityPoints'].includes(event.target.name))updateTimeTrialForm(event.target.form)},true);
+
+/* HY-TEK semicolon entries: optional I roster rows, D open entries, Q relay entries. */
+function hytekSettings(meet){return{teamCode:'MVE',teamName:'Mount Vernon',division:'1',measure:'E',...(state.hytekExportSettings?.[meet.id]||{})}}
+function hytekName(person){const raw=String(person?.name||'').trim().replace(/\s+/g,' ');if(raw.includes(',')){const [last,...first]=raw.split(',');return{first:first.join(',').trim(),last:last.trim()}}const parts=raw.split(' ');return{first:parts.shift()||'',last:parts.join(' ')}}
+function hytekGender(person){return meetGenderKey(person)==='boys'?'M':meetGenderKey(person)==='girls'?'F':''}
+function hytekEvent(event,meet){
+ const info=meetCustomEventInfo(event,meet),open=meetCustomIndividualEvent(event,meet),name=String(open||event).replace(/\bvarsity\b/ig,'').replace(/\s+/g,' ').trim(),lower=name.toLowerCase();
+ if(/seated|wheelchair/i.test(name)||info?.type==='field-team')return null;
+ const field={'high jump':'HJ','pole vault':'PV','long jump':'LJ','triple jump':'TJ','shot put':'SP','discus':'DT','discus throw':'DT','weight throw':'WT','hammer':'HT','hammer throw':'HT','javelin':'JT','javelin throw':'JT'};
+ if(field[lower])return{code:field[lower],relay:false,field:true,event:open};
+ const relay=meetIsRelayEvent(event,meet)||/relay|\b[ds]mr\b|medley|shuttle/i.test(event);
+ if(relay){
+  const regular=name.match(/^(\d+)\s*[x×]\s*(\d+)\s*m?\s*(?:relay)?$/i);
+  if(regular)return{code:String(Number(regular[1])*Number(regular[2])),relay:true,field:false,legs:Number(regular[1])};
+  if(/shuttle|medley|\b[ds]mr\b/i.test(name)){
+   const legs=info?.legs||[],values=legs.map(leg=>String(leg).match(/^(\d+)\s*m?$/i)),sum=values.length&&values.every(Boolean)?values.reduce((n,m)=>n+Number(m[1]),0):0,distance=Number(name.match(/\b(\d+)\s*m\b/i)?.[1])||sum;
+   const suffix=/distance\s*medley|\bDMR\b/i.test(name)?'D':/sprint\s*medley|\bSMR\b/i.test(name)?'S':/shuttle/i.test(name)?'H':'';
+   return distance&&suffix?{code:String(distance)+suffix,relay:true,field:false,legs:legs.length||4}:null
+  }
+  return null
+ }
+ if(/^(?:1\s*mile|mile(?: run)?)$/i.test(name))return{code:'1MILE',relay:false,field:false,event:open};
+ const distance=name.match(/^(\d+)\s*m?(?:\s+(?:dash|run|hurdles?|steeplechase|race walk|walk))?$/i);if(!distance)return null;
+ return{code:distance[1]+(/hurdle/i.test(name)?'H':/steeple/i.test(name)?'S':/walk/i.test(name)?'W':''),relay:false,field:false,event:open}
+}
+function hytekSeedMark(result,field,measure){
+ if(!result||!performanceRecordEligible(result))return'';
+ if(field){const inches=schoolRecordMarkValue(result.event,result.mark);if(!Number.isFinite(inches)||inches<=0)return'';if(measure==='M')return(inches*.0254).toFixed(2);let feet=Math.floor(inches/12),remainder=Math.round((inches-feet*12)*100)/100;if(remainder>=12){feet++;remainder=0}return`${feet}-${remainder}"`}
+ const value=performanceMarkValue(result.mark);if(!Number.isFinite(value)||value<=0)return'';const hundredths=Math.round(value*100),minutes=Math.floor(hundredths/6000),seconds=((hundredths%6000)/100).toFixed(2);return minutes?`${minutes}:${seconds.padStart(5,'0')}`:seconds
+}
+function hytekPriorResult(result,meet){return performanceRecordEligible(result)&&Number.isFinite(performanceMarkValue(result.mark))&&performanceMarkValue(result.mark)>0&&performanceRecordSeasonType(result)===meetSeasonType(meet)&&result.meetId!==meet.id&&(!result.date||!meet.date||result.date<=meet.date)&&(!result.date&&result.year&&meet.date?Number(result.year)<=Number(meet.date.slice(0,4)):true)}
+function hytekIndividualSeed(person,event,meet,reference){return performanceBest(reference.filter(row=>row.athleteId===person.id&&relayEventComparisonKey(row.event)===relayEventComparisonKey(event)&&hytekPriorResult(row,meet)))?.result||null}
+function hytekRelaySeed(event,gender,letter,meet){
+ const candidates=allMeetRecords().filter(source=>!source.timeTrial&&!source.handTime&&source.id!==meet.id&&meetSeasonType(source)===meetSeasonType(meet)&&(!meet.date||!source.date||source.date<=meet.date)).flatMap(source=>(source.relayResults||[]).filter(result=>hytekGender({team:result.team})===gender&&relayEventComparisonKey(result.event)===relayEventComparisonKey(event)&&String(result.relayTeam||'A').replace(/^team\s+/i,'').trim().toUpperCase()===letter).map(result=>({...result,date:source.date||'',meetId:source.id,seasonType:meetSeasonType(source)})));
+ return performanceBest(candidates.filter(row=>hytekPriorResult(row,meet)))?.result||null
+}
+function buildHytekExport(meet,settings=hytekSettings(meet)){
+ const errors=[],records=[],review=[],people=new Map,groups=new Map,reference=performanceAllRawResults(),fail=message=>errors.push(message),check=(value,max,label,required=false)=>{const text=String(value??'').trim();if(required&&!text)fail(`${label} is missing.`);if(text.length>max)fail(`${label} must be ${max} characters or fewer.`);if(/[;\r\n]/.test(text))fail(`${label} cannot contain semicolons or line breaks.`);return text};
+ const teamCode=check(settings.teamCode,4,'Team code',true),teamName=check(settings.teamName,30,'Team name',true),division=check(settings.division,2,'Division'),measure=settings.measure==='M'?'M':'E';
+ if(division&&!/^(?:[1-9]|[1-9]\d)$/.test(division))fail('Division must be blank or a number from 1 to 99.');
+ if(!['indoor','outdoor'].includes(meetSeasonType(meet)))fail('Set an Indoor or Outdoor season before exporting PR seed marks.');
+ function addPerson(id){if(people.has(id))return people.get(id);const person=meetAthlete(id);if(!person){fail('A meet entry refers to an athlete who is no longer on the roster.');return null}const name=hytekName(person),first=check(name.first,20,`${person.name}: first name`,true),last=check(name.last,20,`${person.name}: last name`,true),gender=hytekGender(person),grade=String(person.grade||'');if(!gender)fail(`${person.name}: select Boys or Girls on the roster.`);if(!/^(7|8|9|10|11|12)$/.test(grade))fail(`${person.name}: enter a grade from 7 to 12.`);const value={person,first,last,gender,grade,core:[last,first,'',gender,'',teamCode,teamName,'',grade]};people.set(id,value);return value}
+ Object.entries(meet.roster||{}).forEach(([id,entry])=>{
+  if(!entry?.attending||!meetEventValues(entry).length)return;const person=addPerson(id);if(!person)return;
+  for(const event of new Set(meetEventValues(entry))){
+   const spec=hytekEvent(event,meet);if(!spec){fail(`${event}: this event needs a supported HY-TEK event code before it can be exported.`);continue}
+   if(spec.relay){
+    const letter=String(entry.relayTeams?.[event]||'A').replace(/^team\s+/i,'').trim().toUpperCase(),legValue=entry.relayLegs?.[event],alternate=(entry.alternateEvents||[]).includes(event)||String(legValue).toLowerCase()==='alternate',leg=Number(legValue);
+    if(!/^[A-Z]$/.test(letter)){fail(`${event}: relay team must be a single letter (A, B, C…).`);continue}
+    const key=[person.gender,spec.code,letter].join('|');if(!groups.has(key))groups.set(key,{event,spec,letter,gender:person.gender,runners:[]});groups.get(key).runners.push({person,alternate,leg});
+   }else{
+    if((entry.alternateEvents||[]).includes(event)){fail(`${person.person.name}: alternate status is only supported for relay entries in this export.`);continue}
+    const best=hytekIndividualSeed(person.person,spec.event||event,meet,reference),seed=check(hytekSeedMark(best,spec.field,measure),11,`${person.person.name}: seed mark`);
+    records.push(['D',...person.core,spec.code,seed,measure,division,'','','','']);review.push({name:person.person.name,event,seed,date:best?.date||best?.year||'',kind:'Individual',code:spec.code})
+   }
+  }
+ });
+ for(const group of groups.values()){
+  const {event,spec,letter,gender}=group,active=group.runners.filter(row=>!row.alternate).sort((a,b)=>a.leg-b.leg),alternates=group.runners.filter(row=>row.alternate).sort((a,b)=>sortByLastName(a.person.person,b.person.person)),expected=spec.legs||4;
+  if(expected<1||expected>8||active.length!==expected||new Set(active.map(row=>row.leg)).size!==expected||active.some(row=>!Number.isInteger(row.leg)||row.leg<1||row.leg>expected))fail(`${gender==='M'?'Boys':'Girls'} ${event}, Team ${letter}: assign one runner to each leg, 1–${expected}.`);
+  if(group.runners.length>8)fail(`${event}, Team ${letter}: HY-TEK allows up to 8 runners including alternates.`);
+  const best=hytekRelaySeed(event,gender,letter,meet),seed=check(hytekSeedMark(best,false,measure),10,`${event}, Team ${letter}: seed time`),row=['Q',teamCode,teamName,letter,gender,'',spec.code,seed,measure,division,'','','','',''];
+  for(const runner of [...active,...alternates]){const p=runner.person;row.push(p.last,p.first,'',p.gender,'','',p.grade,'')}
+  records.push(row);review.push({name:`${gender==='M'?'Boys':'Girls'} · Team ${letter}`,event,seed,date:best?.date||best?.year||'',kind:'Relay',code:spec.code,runners:[...active,...alternates].map(row=>`${row.alternate?'Alternate':'Leg '+row.leg}: ${row.person.person.name}`).join(' · ')})
+ }
+ const rosterRows=[...people.values()].sort((a,b)=>sortByLastName(a.person,b.person)).map(p=>{const row=['I',...p.core];while(row.length<24)row.push('');return row});
+ if(!records.length)fail('Enter athletes in at least one event before exporting.');
+ const rows=[...rosterRows,...records];
+ return{rows,review,errors:[...new Set(errors)],athletes:people.size,individuals:records.filter(row=>row[0]==='D').length,relays:records.filter(row=>row[0]==='Q').length,text:rows.map(row=>row.join(';')).join('\r\n')+'\r\n'}
+}
+function hytekExportCard(meet){
+ if(!meet.timeTrial||state.role!=='coach')return'';
+ if(state.hytekExportMeetId!==meet.id)return `<section class="meet-card hytek-export-card"><div class="hytek-export-heading"><div><h3>HY-TEK Entries</h3><p>Export this time trial’s entries with existing ${meetSeasonType(meet)==='indoor'?'Indoor':'Outdoor'} PR seed marks.</p></div><button type="button" class="primary-button" data-action="hytek-open">Prepare HY-TEK export</button></div></section>`;
+ const settings=hytekSettings(meet),data=buildHytekExport(meet,settings);
+ return `<section class="meet-card hytek-export-card"><div class="hytek-export-heading"><div><h3>HY-TEK Entries</h3><p>Use the TXT file in HY-TEK’s Semi-Colon Delimited Rosters/Entries import. The CSV is an optional review sheet.</p></div><button type="button" class="secondary-button" data-action="hytek-close">Close</button></div><div class="hytek-settings"><label>TEAM CODE<input data-action="hytek-setting" data-field="teamCode" maxlength="4" value="${esc(settings.teamCode)}"></label><label>TEAM NAME<input data-action="hytek-setting" data-field="teamName" maxlength="30" value="${esc(settings.teamName)}"></label><label>HY-TEK DIVISION<input data-action="hytek-setting" data-field="division" inputmode="numeric" maxlength="2" value="${esc(settings.division)}" placeholder="Optional"></label><label>HY-TEK EVENT MEASURE<select data-action="hytek-setting" data-field="measure"><option value="E" ${settings.measure==='E'?'selected':''}>English (E) — template default</option><option value="M" ${settings.measure==='M'?'selected':''}>Metric (M)</option></select></label></div><p class="hytek-guidance">Match the division and event measure to HY-TEK’s meet setup. Seeds use official ${meetSeasonType(meet)==='indoor'?'Indoor':'Outdoor'} PRs through the meet date; no PR means a blank seed. Trials and hand-timed races are excluded. Relay seeds use the matching boys/girls event and team letter, with alternates after the competing legs.</p><p class="hytek-counts">${data.athletes} athletes · ${data.individuals} individual entries · ${data.relays} relay teams</p>${data.errors.length?`<div class="hytek-errors" role="alert"><strong>Fix these before exporting:</strong><ul>${data.errors.map(message=>`<li>${esc(message)}</li>`).join('')}</ul></div>`:''}<div class="hytek-review-scroll"><table class="hytek-review"><thead><tr><th>Athlete / relay team</th><th>Event (code)</th><th>PR seed</th><th>PR date</th></tr></thead><tbody>${data.review.map(row=>`<tr><td><strong>${esc(row.name)}</strong>${row.runners?`<small>${esc(row.runners)}</small>`:''}</td><td>${esc(row.event)} <small>${esc(row.code)}</small></td><td>${esc(row.seed||'No PR — blank')}</td><td>${esc(row.date||'—')}</td></tr>`).join('')||'<tr><td colspan="4">No entries yet.</td></tr>'}</tbody></table></div><div class="hytek-export-actions"><button type="button" class="primary-button" data-action="hytek-download" ${data.errors.length?'disabled':''}>Download HY-TEK import (.txt)</button><button type="button" class="secondary-button" data-action="hytek-review-download" ${data.errors.length?'disabled':''}>Download review sheet (.csv)</button></div></section>`
+}
+function downloadHytekEntries(meet,review=false){if(state.role!=='coach'||!meet?.timeTrial||state.preview)return;const data=buildHytekExport(meet);if(data.errors.length){alert(data.errors.join('\n'));return}const text=review?'\uFEFF'+data.rows.map(row=>row.map(csvCell).join(',')).join('\r\n')+'\r\n':data.text,blob=new Blob([text],{type:review?'text/csv;charset=utf-8':'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`${String(meet.name||'Time Trial').replace(/[^a-z0-9]+/ig,'-').replace(/^-|-$/g,'')}-${meet.date||'entries'}-hytek${review?'-review.csv':'.txt'}`;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+const meetEventsBeforeHytek=meetEventsView;
+meetEventsView=function(meet){return hytekExportCard(meet)+meetEventsBeforeHytek(meet)};
+document.addEventListener('click',event=>{const button=event.target.closest('[data-action="hytek-open"],[data-action="hytek-close"],[data-action="hytek-download"],[data-action="hytek-review-download"]');if(!button||state.role!=='coach'||state.preview)return;const meet=selectedMeet();if(!meet?.timeTrial)return;event.preventDefault();event.stopImmediatePropagation();if(button.dataset.action==='hytek-open')state.hytekExportMeetId=meet.id;else if(button.dataset.action==='hytek-close')state.hytekExportMeetId=null;else{downloadHytekEntries(meet,button.dataset.action==='hytek-review-download');return}render()},true);
+document.addEventListener('change',event=>{const field=event.target.closest('[data-action="hytek-setting"]');if(!field||state.role!=='coach'||state.preview)return;const meet=selectedMeet(),key=field.dataset.field;if(!meet?.timeTrial||!['teamCode','teamName','division','measure'].includes(key))return;event.stopImmediatePropagation();const settings=hytekSettings(meet);settings[key]=String(field.value).trim();if(key==='teamCode')settings[key]=settings[key].toUpperCase();state.hytekExportSettings={...(state.hytekExportSettings||{}),[meet.id]:settings};
+ const card=field.closest('.hytek-export-card');if(!card){render();return}if(key==='teamCode')field.value=settings[key];
+ const template=document.createElement('template');template.innerHTML=hytekExportCard(meet);
+ const oldError=card.querySelector('.hytek-errors'),newError=template.content.querySelector('.hytek-errors');
+ if(oldError){if(newError)oldError.replaceWith(newError);else oldError.remove()}else if(newError)card.querySelector('.hytek-review-scroll')?.before(newError);
+ const newReview=template.content.querySelector('.hytek-review-scroll');if(newReview)card.querySelector('.hytek-review-scroll')?.replaceWith(newReview);
+ const blocked=buildHytekExport(meet,settings).errors.length>0;card.querySelectorAll('.hytek-export-actions button').forEach(button=>button.disabled=blocked)},true);
 
 render();
 </script>
